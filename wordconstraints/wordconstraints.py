@@ -20,7 +20,8 @@ def find_words(word_list: List[str] = None,
                  plural = None,
                  tense: str = None,
                  kinds: List[str] = None,
-                 penn_tags: List[str] = None
+                 penn_tag: List[str] = None,
+                 upos_tag: List[str] = None
                  ) -> List[str]:
   '''
   TODO - doctstring
@@ -39,51 +40,49 @@ def find_words(word_list: List[str] = None,
   if word_list is None:
     word_list = get_full_word_list()
 
-    # -----------  Redo This ------------
-
-    #Should filter inflections here rather than later on.
-  candidate_words = []
-
-  if kinds is not None:
-    for upos_tag in kinds:
-      for word in word_list:
-        inflect_dict = getAllInflections(word, upos = upos_tag)
-        for inflections in inflect_dict.values():
-          for inflect_word in inflections:
-            candidate_words.append(inflect_word)
-  else:
+  poss_words = []
+  
+  # -----------  Redo This ------------
+  
+  if penn_tag is not None:
+    
     for word in word_list:
-      inflect_dict = getAllInflections(word)
-      for _, inflections in inflect_dict.items():
-        for inflect_word in inflections:
-          candidate_words.append(inflect_word)
-    # ----------------------------------------
+      inflect_dict = getAllInflections(word, upos = upos_tag)
+      for p_tag, inflections in inflect_dict.items():
+        if p_tag == penn_tag:
+              poss_words.extend(inflections)
+  
+  else:
+    
+    for word in word_list:
+      inflect_dict = getAllInflections(word, upos = upos_tag)
+      inflections = {item for tuple in inflect_dict.values() for item in tuple}
+      poss_words.extend(inflections)
 
-  candidate_words = [standardize_word(word) for word in candidate_words]
+  # ------------------------------------------
+  
+  poss_words = {standardize_word(word) for word in poss_words}
 
   if num_letters is not None:
-    candidate_words = list(filter(lambda word: has_num_letters(word, num_letters), candidate_words))
+    poss_words = {w for w in poss_words if has_num_letters(w, num_letters)}
   elif shorter_than is not None:
-    candidate_words = list(filter(lambda word: has_num_letters(word, num_letters) < num_letters, candidate_words))
+    poss_words = {w for w in poss_words if has_num_letters(w, num_letters) < shorter_than}
   elif longer_than is not None:
-    candidate_words = list(filter(lambda word: has_num_letters(word, num_letters) > num_letters, candidate_words))
+    poss_words = {w for w in poss_words if has_num_letters(w, num_letters) > longer_than}
 
   if includes is not None:
-    candidate_words = list(filter(lambda word: includes_all(word, includes), candidate_words))
+    poss_words = {w for w in poss_words if includes_all(w, includes)}
 
   if excludes is not None:
-    candidate_words = list(filter(lambda word: excludes_all(word, excludes), candidate_words))
+    poss_words = {w for w in poss_words if excludes_all(w, excludes)}
 
   if includes_at_idxs is not None:
-    candidate_words = list(filter(lambda word: includes_letters_at_idxs(word, includes_at_idxs), candidate_words))
+    poss_words = {w for w in poss_words if includes_letters_at_idxs(w, includes_at_idxs)}
 
   if excludes_at_idxs is not None:
-    candidate_words = list(filter(lambda word: excludes_letters_at_idxs(word, excludes_at_idxs), candidate_words))
-
-  if penn_tags is not None:
-    candidate_words = list(filter(lambda word: includes_penn_tag(word, penn_tags), candidate_words))
+    poss_words = {w for w in poss_words if excludes_letters_at_idxs(w, excludes_at_idxs)}
     
-  return sorted(list(set(candidate_words)))
+  return sorted(list(poss_words))
 
 
 def get_full_word_list() -> List[str]:
@@ -114,11 +113,11 @@ def has_num_letters(word: str, num_letters: List[int]|int) -> bool:
     '''
   word_len = len(get_char_list(word))
 
-  if isinstance(num_letters, list):
+  match num_letters:
+    case int():
+      return word_len == num_letters
+    case list():
       return word_len in num_letters
-  
-  if isinstance(num_letters, int):
-    return word_len == num_letters
 
 
 def standardize_word(word: str) -> str:
@@ -165,7 +164,7 @@ def includes_all(word: str, letter_list: List[str]) -> bool:
     letter_list (list): List of lowercase alphabet letters to check are included
   '''
 
-  return all([let in get_char_list(word) for let in letter_list])
+  return all([let in set(get_char_list(word)) for let in letter_list])
 
 
 def excludes_all(word: str, letter_list: List[str]) -> bool:
@@ -177,8 +176,7 @@ def excludes_all(word: str, letter_list: List[str]) -> bool:
     letter_list (list): List of lowercase alphabet letters to check are not present.
   '''
 
-  char_list = get_char_list(word)
-  return all([let not in char_list for let in letter_list])
+  return all([let not in set(get_char_list(word)) for let in letter_list])
 
 
 def includes_letters_at_idxs(word: str, idx_letter_dict: Dict[int, List[str]]) -> bool:
