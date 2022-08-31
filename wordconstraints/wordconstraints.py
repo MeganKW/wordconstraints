@@ -9,7 +9,7 @@ import ssl
 
 # ---------- Main Functions -------------
 
-def filter_words(word_list: List[str],
+def find_words(word_list: List[str] = None,
                  num_letters: int|List[int] = None,
                  shorter_than: int = None,
                  longer_than: int = None,
@@ -36,11 +36,13 @@ def filter_words(word_list: List[str],
   common penn tag combos
 
   '''
-  candidate_words = []
+  if word_list is None:
+    word_list = get_full_word_list()
 
     # -----------  Redo This ------------
 
     #Should filter inflections here rather than later on.
+  candidate_words = []
 
   if kinds is not None:
     for upos_tag in kinds:
@@ -83,20 +85,6 @@ def filter_words(word_list: List[str],
     
   return sorted(list(set(candidate_words)))
 
-def find_words(**kwargs):
-  '''
-  pos = None,
-  num_letters = None,
-  includes_at_idxs = None,
-  excludes_at_idxs = None,
-  require_plural = False,
-  includes = None, 
-  excludes = None
-  '''
-  if "word_list" not in kwargs.keys():
-    word_list = get_full_word_list()
-
-  return filter_words(word_list, **kwargs)
 
 def get_full_word_list() -> List[str]:
   '''
