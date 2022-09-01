@@ -1,9 +1,7 @@
 """
-A small python module for filtering lists of words by inclusion or exclusion
-of certain letters, letters at positions, and by linguistic type.
+A small python module for filtering a list of words by letter inclusion and exclusion (over a whole word or at paticular positions), and by word type (e.g verb, plural noun).
 
-Originally made for use in word based puzzle solvers for things like wordle
-and crosswords.
+Originally made for use in word based puzzle solvers for things like crosswords or wordle.
 """
 
 import re
@@ -271,7 +269,7 @@ def excludes_letters_at_idxs(word: str, idx_letter_dict: Dict[int, List[str]]) -
     return all(bool_list)
 
 
-# -------- Parts of Speech Handling ----------
+# -------- Parts of Speech Handling [CURRENTLY UNUSED] ----------
 
 
 def includes_penn_tag(word: str, penn_tags: List[str]) -> bool:
