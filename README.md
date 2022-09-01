@@ -40,7 +40,6 @@ And sure enough that's the answer!
 <img src="https://drive.google.com/uc?export=view&id=1gVBIcrvnkCbdqeZdcEr26JPw3PaFX0xV" height = "200">
 </p>
 
-
 ## Crossword Clues
 These examples demonstrates the use of the universal parts of speech tags and penn tags.
 
@@ -52,6 +51,7 @@ Using the upos_tag "NOUN" we can further narrow down the potential words that mi
 <p align = "center">
 <img src="https://drive.google.com/uc?export=view&id=1UR9dSDNzwiMl1D29jtIfxt33tTEi3Oau" height = "200">
 </p>
+
 
 Using the default word list and the information we have, plus the "NOUN" upos tag we get the following possible words ("brawl" seems like a pretty likely candidate here)
 ```
