@@ -8,7 +8,7 @@ Originally made for use in word based puzzle solvers for things like crosswords 
 
 The only front facing function is find_words. To use:
 ```
-pip install wordconstraints==0.0.1
+pip install wordconstraints
 ```
 
 ```
