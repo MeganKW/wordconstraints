@@ -76,7 +76,13 @@ Using the corresponding penn_tag "VBP" we can narrow down the number of potentia
 
 # Full Details
 
-The only front facing function is find_words. 
+The only front facing function is find_words. To use:
+
+```
+import wordconstraints as wc
+
+wc.find_words()
+```
 
 The find_words function takes a few different parameters, all optional.
 
