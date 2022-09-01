@@ -4,9 +4,19 @@ A small python module for filtering a list of words by letter inclusion and excl
 
 # About
 
-Originally made for use in word based puzzle solvers for things like crosswords or wordle.
+Originally made for use in word based puzzle solvers for things like crosswords or wordle. Processing of word types heavily uses [LemmInflect](https://github.com/bjascob/LemmInflect).
 
-Processing of word types heavily uses [LemmInflect](https://github.com/bjascob/LemmInflect).
+The only front facing function is find_words. To use:
+```
+pip install wordconstraints==0.0.1
+```
+
+```
+import wordconstraints as wc
+```
+```
+wc.find_words()
+```
 
 
 # Example Uses
@@ -77,17 +87,21 @@ Using the corresponding penn_tag "VBP" we can narrow down the number of potentia
 # Full Details
 
 The only front facing function is find_words. To use:
+```
+pip install wordconstraints==0.0.1
+```
 
 ```
 import wordconstraints as wc
-
+```
+```
 wc.find_words()
 ```
 
 The find_words function takes a few different parameters, all optional.
 
 <p align = "center">
-<img src="https://drive.google.com/uc?export=view&id=1CIU0T7hbiuBCG-jTA7bjTUsHqzb9kZg_" width="420">
+<img src="https://drive.google.com/uc?export=view&id=1fqSRiyC8JQQdnkv_gT-eXTULsMS1-BEl" width="420">
 </p>
 
 - word_list
