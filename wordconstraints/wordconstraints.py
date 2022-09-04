@@ -5,9 +5,8 @@ Originally made for use in word based puzzle solvers for things like crosswords 
 """
 
 import re
-import string
 import ssl
-from typing import Dict, List
+from typing import Dict, List, Callable
 from lemminflect import getAllInflections, getAllLemmas
 import nltk.corpus
 from nltk.corpus import words
@@ -55,57 +54,49 @@ def find_words(
     if word_list is None:
         word_list = get_full_word_list()
 
-    poss_words = []
-
-    # -----------  Redo This ------------
+    # Create list that includes all inflected versions of words in the word list, only adding words of requested type if any upos or penn tag provided.
 
     if penn_tag is not None:
-
-        for word in word_list:
-            inflect_dict = getAllInflections(word, upos=upos_tag)
-            for p_tag, inflections in inflect_dict.items():
-                if p_tag == penn_tag:
-                    poss_words.extend(inflections)
-
+        poss_words = get_words_with_penn_tag(word_list, penn_tag, upos_tag=upos_tag)
     else:
+        poss_words = get_words_with_upos_tag(word_list, upos_tag)
 
-        for word in word_list:
-            inflect_dict = getAllInflections(word, upos=upos_tag)
-            inflections = {item for tuple in inflect_dict.values() for item in tuple}
-            poss_words.extend(inflections)
-
-    # ------------------------------------------
+    # Standardize words for letter filtering (removes
+    # underscores, hyphens and apostrophes)
 
     poss_words = {standardize_word(word) for word in poss_words}
 
-    if num_letters is not None:
-        poss_words = {w for w in poss_words if has_num_letters(w, num_letters)}
-    elif shorter_than is not None:
-        poss_words = {
-            w for w in poss_words if has_num_letters(w, num_letters) < shorter_than
-        }
-    elif longer_than is not None:
-        poss_words = {
-            w for w in poss_words if has_num_letters(w, num_letters) > longer_than
-        }
+    # Combine filters
 
-    if includes is not None:
-        poss_words = {w for w in poss_words if includes_all(w, includes)}
+    filter_dict = {
+        has_num_letters: num_letters,
+        is_shorter_than: shorter_than,
+        is_longer_than: longer_than,
+        includes_all: includes,
+        includes_letters_at_idxs: includes_at_idxs,
+        excludes_all: excludes,
+        excludes_letters_at_idxs: excludes_at_idxs,
+    }
+    # List of filters with given constraints values prepared
 
-    if excludes is not None:
-        poss_words = {w for w in poss_words if excludes_all(w, excludes)}
+    active_filters = [
+        lambda w, c=c, func=func: func(w, c)
+        for func, c in filter_dict.items()
+        if c is not None
+    ]
 
-    if includes_at_idxs is not None:
-        poss_words = {
-            w for w in poss_words if includes_letters_at_idxs(w, includes_at_idxs)
-        }
+    # Apply filters to set of possible words.
 
-    if excludes_at_idxs is not None:
-        poss_words = {
-            w for w in poss_words if excludes_letters_at_idxs(w, excludes_at_idxs)
-        }
+    poss_words = {word for word in poss_words if apply_filters(word, active_filters)}
 
     return sorted(list(poss_words))
+
+
+def apply_filters(word: str, active_filters: List[Callable]) -> bool:
+    """
+    Returns True if all provided functions operating on the provided word return True.
+    """
+    return all((filt(word) for filt in active_filters))
 
 
 def get_full_word_list() -> List[str]:
@@ -144,6 +135,20 @@ def has_num_letters(word: str, num_letters: List[int] | int) -> bool:
             return word_len in num_letters
 
 
+def is_shorter_than(word: str, num: int) -> bool:
+    """
+    Returns True if the length of the word is shorter than provided num and False otherwise.
+    """
+    return len(word) < num
+
+
+def is_longer_than(word: str, num: int) -> bool:
+    """
+    Returns True if the length of the word is shorter than provided num and False otherwise.
+    """
+    return len(word) > num
+
+
 def standardize_word(word: str) -> str:
     """
     Removes underscores, hyphens and apostrophes from a string.
@@ -170,13 +175,6 @@ def get_char_list(word: str, preserve_case: bool = False) -> List[str]:
         return [char for char in word]
     else:
         return [char.lower() for char in word]
-
-
-def alphabet() -> List[str]:
-    """
-    Returns a list of all alphabet letters as lowercase strings.
-    """
-    return [char for char in string.ascii_lowercase]
 
 
 def includes_all(word: str, letter_list: List[str]) -> bool:
@@ -268,6 +266,40 @@ def excludes_letters_at_idxs(word: str, idx_letter_dict: Dict[int, List[str]]) -
 
     return all(bool_list)
 
+
+# -------- Parts of Speech Handling ----------
+
+
+def get_words_with_upos_tag(word_list: List[str], upos_tag: str) -> List[str]:
+    """
+    Returns a list of all inflected forms of the words in the
+    provided wordlist that have the provided universal parts
+    of speech tag.
+    """
+    poss_words = []
+    for word in word_list:
+        inflect_dict = getAllInflections(word, upos=upos_tag)
+        inflections = {item for tuple in inflect_dict.values() for item in tuple}
+        poss_words.extend(inflections)
+    return poss_words
+
+
+def get_words_with_penn_tag(
+    word_list: List[str], penn_tag: str, upos_tag: str = None
+) -> List[str]:
+    """
+    Returns a list of all inflected forms of the words in the
+    provided wordlist that have the provided penn treebank tag.
+    Includes an optional argument for also specifying the
+    universal parts of speech tag.
+    """
+    poss_words = []
+    for word in word_list:
+        inflect_dict = getAllInflections(word, upos=upos_tag)
+        for p_tag, inflections in inflect_dict.items():
+            if p_tag == penn_tag:
+                poss_words.extend(inflections)
+    return poss_words
 
 # -------- Parts of Speech Handling [CURRENTLY UNUSED] ----------
 
