@@ -129,11 +129,6 @@ The find_words function takes a few different parameters, all optional.
 - longer_than
     - If provided, words must have a length which is more than provided integer.
 
-# Issues
-
-- Filtering of strings with upper case letters might be buggy, so its possible that filtering of proper nouns might not work correctly at the moment.
-
-
 # Possible Features to Add
 
 - Add the ability to match the type of a provided word (useful for crosswords, where for example, a plural noun clue means the answer is also a plural noun)
